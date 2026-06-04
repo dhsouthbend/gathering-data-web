@@ -10,7 +10,7 @@ Begin by clicking the "Get Started" link below.
 
 [What are APIs and how are they useful?](sections/concept.md)  
 [API Etiquette](sections/etiquette.md)  
-[API Requests in Browser](sections/SWAPI.md)  
+[API Requests in Browser](sections/browser.md)  
 [Using APIs to Access an Art Collection](sections/browsing-art.md)  
 [Using APIs from the Command Line](sections/curl.md)
 
