@@ -1,4 +1,4 @@
-[<<< Previous](concept.md) | [Next >>>](SWAPI.md)
+[<<< Previous](concept.md) | [Next >>>](browser.md)
 
 # API Etiquette
 
