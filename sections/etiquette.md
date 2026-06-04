@@ -21,4 +21,4 @@ What does a usage statement look like? The Art Institute of Chicago offers [a pr
 
 Having covered the etiquette of API usage, let's get started by looking at how API requests can be made in your browser, using a resource called the Star Wars API.
 
-[<<< Previous](concept.md) | [Next >>>](SWAPI.md)
+[<<< Previous](concept.md) | [Next >>>](browser.md)

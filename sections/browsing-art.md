@@ -1,4 +1,4 @@
-[<<< Previous](SWAPI.md) | [Next >>>](curl.md)
+[<<< Previous](browser.md) | [Next >>>](curl.md)
 
 # Using APIs to Access an Art Collection
 
@@ -20,4 +20,4 @@ If we navigate to this link, [https://api.artic.edu/api/v1/artworks/51719](https
 
 But how do we capture this data for usage on our own computers?
 
-[<<< Previous](SWAPI.md) | [Next >>>](curl.md)
+[<<< Previous](browser.md) | [Next >>>](curl.md)
