@@ -2,36 +2,102 @@
 # 
 # R script to call to College Football Data API and visualize play-by-play data.
 # Workshop: Gathering Data from the Web Using APIs
-# Dan Johnson + Summer Mengarelli, Fall 2025
+# Dan Johnson + Summer Mengarelli, Spring 2026
 #
 # ------------------------------------
 
 # Libraries
 ## installing cfbfastR from the sportsdataverse:
-if (!requireNamespace('remotes', quietly = TRUE)){
-  install.packages('remotes', repos = "https://cloud.r-project.org")
-}
-remotes::install_github("sportsdataverse/cfbfastR")
+# if (!requireNamespace('remotes', quietly = TRUE)){
+#   install.packages('remotes', repos = "https://cloud.r-project.org")
+# }
+# remotes::install_github("sportsdataverse/cfbfastR")
 
 library(cfbfastR)
 library(sportyR)
 library(tidyverse)
+library(scales)
+library(gganimate)
 
 # ------------------------------------
 
 # API KEY
 ## I requested a key here: https://collegefootballdata.com/key
-Sys.setenv(CFBD_API_KEY = "1XuruDEn5DZHsjxGa/sZigqoKk/t2Df/+65BzVdmAAWlN2dWJGKdbYcyVlAuv8Y3")
+Sys.setenv(CFBD_API_KEY = " ")
 
 # ------------------------------------
 
-# Make API request for play-by-play data of 2025 season (so far)
-pbp_2025 <- cfbfastR::load_cfb_pbp(seasons = 2025)
-
-## Filter to ND vs Navy game (could have done this multiple ways)
-nd_navy <- pbp_2025 %>% filter(home == "Notre Dame" & away == "Navy")
+# Make API request for play-by-play data of 2025 season and fter to ND vs Navy game (could have done this multiple ways)
+game <- cfbfastR::load_cfb_pbp(seasons = 2015) %>%
+   filter(home == "Notre Dame" & away == "Massachusetts")
 
 # ------------------------------------
+
+game_clean <- game %>%
+  mutate(
+    # Convert clock to total seconds remaining in game
+    game_seconds = (4 - period) * 15 * 60 + clock_minutes * 60 + clock_seconds,
+    game_seconds = max(game_seconds) - game_seconds,
+  ) %>%
+  mutate(play_type_clean = case_when( 
+    str_detect(play_type, "Passing") ~ "Touchdown",
+    str_detect(play_type, "Rushing") ~ "Touchdown",
+    play_type == "Rush" ~ "Rush",
+    (play_type == "Pass Reception" | play_type == "Pass Incompletion") ~ "Pass",
+    str_detect(play_type, "Field Goal") ~ "Field Goal",
+    str_detect(play_type, "Punt") ~ "Punt",
+    play_type == "Sack" ~ "Sack",
+    TRUE ~ "Other")) %>%
+  mutate(play_type_clean = as.factor(play_type_clean)) %>%
+  arrange(game_seconds)
+
+p <- ggplot(game_clean, aes(
+  x = game_seconds,
+  y = yards_gained,
+  color = play_type_clean
+)) +
+  geom_point(size = 8, alpha = 0.9) +
+  
+  labs(
+    title = paste("Plays:", game_clean$home, "v", game_clean$away),
+    subtitle = "Game time: {round(frame_time/60, 1)} minutes",
+    x = "Game Time (seconds elapsed)",
+    y = "Yards Gained",
+    color = "Play Type"
+  ) +
+  ylim(-20, 75) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set2") +
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  )
+
+anim <- p +
+  transition_time(game_seconds) +
+  ease_aes() +
+  shadow_mark(alpha = 0.6, size = 2)
+
+animate(anim, fps = 5, width = 800, height = 500)
+
+
+
+anim_save("umass.gif")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ------------------------------------ OLD
 
 # Prepare data to plot plays
 ## Create X/Y coordinates, where X maps to final location of play and Y is (for now) at center
@@ -70,7 +136,7 @@ love_td_plot <- data.frame(
   end_y = 0
 )
 
-# ------------------------------------
+# ------------------------------------ OLD VIZ
 
 # Visualize ND plays!
 gg_field <- geom_football(league = "ncaa", display_range = "full") +
@@ -113,3 +179,39 @@ gg_field <- geom_football(league = "ncaa", display_range = "full") +
 
 gg_field
 
+
+
+
+library(gganimate)
+
+nd_clean <- nd_navy %>%
+  arrange(game_play_number) %>%
+  mutate(play_type = as.factor(play_type)) %>%
+  group_by(play_type) %>%
+  mutate(cum_epa = cumsum(EPA)) %>%
+  ungroup()
+
+p <- ggplot(nd_clean, aes(
+  x = game_play_number,
+  y = cum_epa,
+  color = play_type,
+  group = play_type
+)) +
+  geom_line(size = 1.2) +
+  labs(
+    title = "Cumulative EPA by Play Type",
+    subtitle = "Play: {closest_state}",
+    x = "Play Number",
+    y = "Cumulative EPA",
+    color = "Play Type"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  )
+
+anim <- p +
+  transition_reveal(game_play_number)
+
+animate(anim, nframes = 120, fps = 10, width = 800, height = 500)
+ 
